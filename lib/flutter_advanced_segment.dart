@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 /// An advanced
 class AdvancedSegment<K extends Object, V extends String>
@@ -16,8 +16,8 @@ class AdvancedSegment<K extends Object, V extends String>
       vertical: 10,
     ),
     this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
-    this.backgroundColor = const Color(0x42000000),
-    this.sliderColor = const Color(0xFFFFFFFF),
+    this.backgroundColor,
+    this.sliderColor,
     this.sliderOffset = 2.0,
     this.animationDuration = const Duration(milliseconds: 250),
     this.shadow = const <BoxShadow>[
@@ -26,15 +26,19 @@ class AdvancedSegment<K extends Object, V extends String>
         blurRadius: 8.0,
       ),
     ],
-    this.sliderDecoration,
+    this.sliderDecoration, this.customMaxItemSize,
   })  : assert(segments.length > 1, 'Minimum segments amount is 2'),
         super(key: key);
 
   /// Controls segments selection.
   final ValueNotifier<K>? controller;
 
+
   /// Map of segments should be more than one keys.
   final Map<K, V> segments;
+
+  /// Map of segments should be more than one keys.
+  final Size? customMaxItemSize;
 
   /// Active text style.
   final TextStyle activeStyle;
@@ -49,10 +53,10 @@ class AdvancedSegment<K extends Object, V extends String>
   final BorderRadius borderRadius;
 
   /// Color of slider.
-  final Color sliderColor;
+  final Color? sliderColor;
 
   /// Layout background color.
-  final Color backgroundColor;
+  final Color? backgroundColor;
 
   /// Gap between slider and layout.
   final double sliderOffset;
@@ -72,11 +76,7 @@ class AdvancedSegment<K extends Object, V extends String>
 
 class _AdvancedSegmentState<K extends Object, V extends String>
     extends State<AdvancedSegment<K, V>> with SingleTickerProviderStateMixin {
-  static const _defaultTextStyle = TextStyle(
-    fontWeight: FontWeight.w400,
-    fontSize: 14,
-    color: Color(0xFF000000),
-  );
+  late final TextStyle _defaultTextStyle;
   late final AnimationController _animationController;
   late final ValueNotifier<K> _defaultController;
   late ValueNotifier<K> _controller;
@@ -86,6 +86,14 @@ class _AdvancedSegmentState<K extends Object, V extends String>
   @override
   void initState() {
     super.initState();
+
+    _defaultTextStyle = const TextStyle(
+    fontWeight: FontWeight.w400,
+    fontSize: 14,
+
+
+  
+  );
 
     _initSizes();
 
@@ -111,7 +119,7 @@ class _AdvancedSegmentState<K extends Object, V extends String>
   }
 
   void _initSizes() {
-    final maxSize =
+    final maxSize = widget.customMaxItemSize ??
         widget.segments.values.map(_obtainTextSize).reduce((value, element) {
       return value.width.compareTo(element.width) >= 1 ? value : element;
     });
@@ -149,89 +157,103 @@ class _AdvancedSegmentState<K extends Object, V extends String>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: _containerSize.width,
-      height: _containerSize.height,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: widget.backgroundColor,
-        borderRadius: widget.borderRadius,
-      ),
-      child: Opacity(
-        opacity: widget.controller != null ? 1 : 0.75,
-        child: Stack(
-          children: [
-            AnimatedBuilder(
-              animation: _animationController,
-              builder: (_, child) {
-                return Transform.translate(
-                  offset: Tween<Offset>(
-                    begin: Offset.zero,
-                    end: _obtainEndOffset(Directionality.of(context)),
-                  )
-                      .animate(CurvedAnimation(
-                        parent: _animationController,
-                        curve: Curves.linear,
-                      ))
-                      .value,
-                  child: child,
-                );
-              },
-              child: FractionallySizedBox(
-                widthFactor: 1 / widget.segments.length,
-                heightFactor: 1,
-                child: Container(
-                  margin: EdgeInsets.all(widget.sliderOffset),
-                  // height: _itemSize.height - widget.sliderOffset * 2,
-                  decoration: widget.sliderDecoration ??
-                      BoxDecoration(
-                        color: widget.sliderColor,
-                        borderRadius: widget.borderRadius.subtract(
-                            BorderRadius.all(
-                                Radius.circular(widget.sliderOffset))),
-                        boxShadow: widget.shadow,
-                      ),
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: widget.borderRadius),
+      child: Container(
+        width: _containerSize.width,
+        height: _containerSize.height,
+        //clipBehavior: Clip.antiAlias,
+        // decoration: BoxDecoration(
+        //   color: widget.backgroundColor ?? Theme.of(context).colorScheme.surface.withOpacity(.5),
+        //   borderRadius: widget.borderRadius,
+        // ),
+        child: Opacity(
+          opacity: widget.controller != null ? 1 : 0.75,
+          child: Stack(
+            children: [
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (_, child) {
+                  return Transform.translate(
+                    offset: Tween<Offset>(
+                      begin: Offset.zero,
+                      end: _obtainEndOffset(Directionality.of(context)),
+                    )
+                        .animate(CurvedAnimation(
+                          parent: _animationController,
+                          curve: Curves.linear,
+                        ))
+                        .value,
+                    child: child,
+                  );
+                },
+                child: FractionallySizedBox(
+                  widthFactor: 1 / widget.segments.length,
+                  heightFactor: 1,
+                  child: Container(
+                    margin: EdgeInsets.all(widget.sliderOffset),
+                    // height: _itemSize.height - widget.sliderOffset * 2,
+                    decoration: widget.sliderDecoration ??
+                        BoxDecoration(
+                          color: widget.sliderColor ?? Theme.of(context).primaryColor,
+                          // borderRadius: widget.borderRadius.subtract(
+                          //     BorderRadius.all(
+                          //         Radius.circular(widget.sliderOffset))),
+                          borderRadius: widget.borderRadius,
+                          boxShadow: widget.shadow,
+                        ),
+                  ),
                 ),
               ),
-            ),
-            ValueListenableBuilder(
-              valueListenable: _controller,
-              builder: (_, value, __) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: widget.segments.entries.map((entry) {
-                    return GestureDetector(
-                      onHorizontalDragUpdate: (details) => _handleSegmentMove(
-                        details,
-                        entry.key,
-                        Directionality.of(context),
-                      ),
-                      onTap: () => _handleSegmentPressed(entry.key),
-                      child: Container(
-                        width: _itemSize.width,
-                        height: _itemSize.height,
-                        color: const Color(0x00000000),
-                        child: AnimatedDefaultTextStyle(
-                          duration: widget.animationDuration,
-                          style: _defaultTextStyle.merge(value == entry.key
-                              ? widget.activeStyle
-                              : widget.inactiveStyle),
-                          overflow: TextOverflow.clip,
-                          maxLines: 1,
-                          softWrap: false,
-                          child: Center(
-                            child: Text(entry.value),
+              ValueListenableBuilder(
+                valueListenable: _controller,
+                builder: (_, value, __) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: widget.segments.entries.map((entry) {
+                      return GestureDetector(
+                        onHorizontalDragUpdate: (details) => _handleSegmentMove(
+                          details,
+                          entry.key,
+                          Directionality.of(context),
+                        ),
+                        onTap: () => _handleSegmentPressed(entry.key),
+                        child: Container(
+                          width: _itemSize.width,
+                          height: _itemSize.height,
+                          //padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: RawChip(
+                            padding: EdgeInsets.zero,
+                            side: const BorderSide(width: 0, color: Colors.transparent),
+                            shape:  RoundedRectangleBorder(borderRadius: widget.borderRadius),
+                            backgroundColor: Colors.transparent,
+                            onPressed: () => _handleSegmentPressed(entry.key),
+                            label: Align(
+                              alignment: Alignment.center,
+                              child: AnimatedDefaultTextStyle(
+                                duration: widget.animationDuration,
+                                style: _defaultTextStyle.merge(value == entry.key
+                                    ? widget.activeStyle.merge(TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer))
+                                    : widget.inactiveStyle ?? TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                overflow: TextOverflow.clip,
+                                maxLines: 1,
+                                softWrap: false,
+                                child: Center(
+                                  child: Text(entry.value),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(growable: false),
-                );
-              },
-            ),
-          ],
+                      );
+                    }).toList(growable: false),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
