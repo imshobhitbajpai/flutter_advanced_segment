@@ -158,6 +158,7 @@ class _AdvancedSegmentState<K extends Object, V extends String>
   @override
   Widget build(BuildContext context) {
     return Card(
+       color: widget.backgroundColor,
       shape: RoundedRectangleBorder(borderRadius: widget.borderRadius),
       child: Container(
         width: _containerSize.width,
