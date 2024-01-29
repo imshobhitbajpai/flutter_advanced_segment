@@ -35,7 +35,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
-  final ValueNotifier _notifier = ValueNotifier(0);
+  final ValueNotifier<int> _notifier = ValueNotifier(0);
 
   @override
   void initState() {
@@ -62,7 +62,9 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
               children: [
                 _buildLabel('Multiple Items'),
                 AdvancedSegment(
-                  //backgroundColor: Colors.transparent,
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  surfaceTintColor: Colors.transparent,
                   sliderOffset: 02,
                   borderRadius: BorderRadius.circular(40),
                   controller: _notifier..addListener(() {
