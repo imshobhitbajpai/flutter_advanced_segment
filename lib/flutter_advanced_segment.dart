@@ -17,6 +17,8 @@ class AdvancedSegment<K extends Object, V extends String>
     ),
     this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
     this.backgroundColor,
+    this.surfaceTintColor,
+    this.shadowColor,
     this.sliderColor,
     this.sliderOffset = 2.0,
     this.animationDuration = const Duration(milliseconds: 250),
@@ -57,6 +59,12 @@ class AdvancedSegment<K extends Object, V extends String>
 
   /// Layout background color.
   final Color? backgroundColor;
+
+  /// Layout surface color.
+  final Color? surfaceTintColor;
+
+  /// Layout shadow color.
+  final Color? shadowColor;
 
   /// Gap between slider and layout.
   final double sliderOffset;
@@ -159,6 +167,8 @@ class _AdvancedSegmentState<K extends Object, V extends String>
   Widget build(BuildContext context) {
     return Card(
        color: widget.backgroundColor,
+       shadowColor: widget.shadowColor,
+       surfaceTintColor: widget.surfaceTintColor,
       shape: RoundedRectangleBorder(borderRadius: widget.borderRadius),
       child: Container(
         width: _containerSize.width,
