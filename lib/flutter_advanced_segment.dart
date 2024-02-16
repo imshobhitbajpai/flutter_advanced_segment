@@ -225,11 +225,11 @@ class _AdvancedSegmentState<K extends Object, V extends String>
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: widget.segments.entries.map((entry) {
                       return GestureDetector(
-                        onHorizontalDragUpdate: (details) => _handleSegmentMove(
-                          details,
-                          entry.key,
-                          Directionality.of(context),
-                        ),
+                        // onHorizontalDragUpdate: (details) => _handleSegmentMove(
+                        //   details,
+                        //   entry.key,
+                        //   Directionality.of(context),
+                        // ),
                         onTap: () => _handleSegmentPressed(entry.key),
                         child: Container(
                           width: _itemSize.width,
