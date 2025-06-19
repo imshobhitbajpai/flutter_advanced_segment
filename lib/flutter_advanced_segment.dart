@@ -15,7 +15,8 @@ class AdvancedSegment<K extends Object, V extends String>
       horizontal: 15,
       vertical: 10,
     ),
-    this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
+    //this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
+    this.radius: 8,
     this.backgroundColor,
     this.surfaceTintColor,
     this.shadowColor,
@@ -28,13 +29,13 @@ class AdvancedSegment<K extends Object, V extends String>
         blurRadius: 8.0,
       ),
     ],
-    this.sliderDecoration, this.customMaxItemSize,
+    this.sliderDecoration,
+    this.customMaxItemSize,
   })  : assert(segments.length > 1, 'Minimum segments amount is 2'),
         super(key: key);
 
   /// Controls segments selection.
   final ValueNotifier<K>? controller;
-
 
   /// Map of segments should be more than one keys.
   final Map<K, V> segments;
@@ -52,7 +53,8 @@ class AdvancedSegment<K extends Object, V extends String>
   final EdgeInsetsGeometry itemPadding;
 
   /// Common border radius.
-  final BorderRadius borderRadius;
+  //final BorderRadius borderRadius;
+  final double radius;
 
   /// Color of slider.
   final Color? sliderColor;
@@ -84,6 +86,7 @@ class AdvancedSegment<K extends Object, V extends String>
 
 class _AdvancedSegmentState<K extends Object, V extends String>
     extends State<AdvancedSegment<K, V>> with SingleTickerProviderStateMixin {
+  late final borderRadius;
   late final TextStyle _defaultTextStyle;
   late final AnimationController _animationController;
   late final ValueNotifier<K> _defaultController;
@@ -94,14 +97,11 @@ class _AdvancedSegmentState<K extends Object, V extends String>
   @override
   void initState() {
     super.initState();
-
+    borderRadius = BorderRadius.all(Radius.circular(widget.radius));
     _defaultTextStyle = const TextStyle(
-    fontWeight: FontWeight.w400,
-    fontSize: 14,
-
-
-  
-  );
+      fontWeight: FontWeight.w400,
+      fontSize: 14,
+    );
 
     _initSizes();
 
@@ -129,8 +129,8 @@ class _AdvancedSegmentState<K extends Object, V extends String>
   void _initSizes() {
     final maxSize = widget.customMaxItemSize ??
         widget.segments.values.map(_obtainTextSize).reduce((value, element) {
-      return value.width.compareTo(element.width) >= 1 ? value : element;
-    });
+          return value.width.compareTo(element.width) >= 1 ? value : element;
+        });
 
     _itemSize = Size(
       maxSize.width + widget.itemPadding.horizontal,
@@ -166,17 +166,17 @@ class _AdvancedSegmentState<K extends Object, V extends String>
   @override
   Widget build(BuildContext context) {
     return Card(
-       color: widget.backgroundColor,
-       shadowColor: widget.shadowColor,
-       surfaceTintColor: widget.surfaceTintColor,
-      shape: RoundedRectangleBorder(borderRadius: widget.borderRadius),
+      color: widget.backgroundColor,
+      shadowColor: widget.shadowColor,
+      surfaceTintColor: widget.surfaceTintColor,
+      shape: RoundedRectangleBorder(borderRadius: borderRadius),
       child: Container(
         width: _containerSize.width,
         height: _containerSize.height,
         //clipBehavior: Clip.antiAlias,
         // decoration: BoxDecoration(
         //   color: widget.backgroundColor ?? Theme.of(context).colorScheme.surface.withOpacity(.5),
-        //   borderRadius: widget.borderRadius,
+        //   borderRadius: borderRadius,
         // ),
         child: Opacity(
           opacity: widget.controller != null ? 1 : 0.75,
@@ -206,11 +206,12 @@ class _AdvancedSegmentState<K extends Object, V extends String>
                     // height: _itemSize.height - widget.sliderOffset * 2,
                     decoration: widget.sliderDecoration ??
                         BoxDecoration(
-                          color: widget.sliderColor ?? Theme.of(context).primaryColor,
-                          // borderRadius: widget.borderRadius.subtract(
+                          color: widget.sliderColor ??
+                              Theme.of(context).primaryColor,
+                          // borderRadius: borderRadius.subtract(
                           //     BorderRadius.all(
                           //         Radius.circular(widget.sliderOffset))),
-                          borderRadius: widget.borderRadius,
+                          borderRadius: borderRadius,
                           boxShadow: widget.shadow,
                         ),
                   ),
@@ -224,39 +225,61 @@ class _AdvancedSegmentState<K extends Object, V extends String>
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: widget.segments.entries.map((entry) {
-                      return GestureDetector(
+                      return InkWell(
                         // onHorizontalDragUpdate: (details) => _handleSegmentMove(
                         //   details,
                         //   entry.key,
                         //   Directionality.of(context),
                         // ),
+                        radius:  widget.radius,
+                        borderRadius: borderRadius,
                         onTap: () => _handleSegmentPressed(entry.key),
                         child: Container(
                           width: _itemSize.width,
                           height: _itemSize.height,
+                          alignment: Alignment.center,
                           //padding: const EdgeInsets.symmetric(horizontal: 5),
-                          child: RawChip(
-                            padding: EdgeInsets.zero,
-                            side: const BorderSide(width: 0, color: Colors.transparent),
-                            shape:  RoundedRectangleBorder(borderRadius: widget.borderRadius),
-                            backgroundColor: Colors.transparent,
-                            onPressed: () => _handleSegmentPressed(entry.key),
-                            label: Align(
-                              alignment: Alignment.center,
-                              child: AnimatedDefaultTextStyle(
-                                duration: widget.animationDuration,
-                                style: _defaultTextStyle.merge(value == entry.key
-                                    ? widget.activeStyle.merge(TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer))
-                                    : widget.inactiveStyle ?? TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                                overflow: TextOverflow.clip,
-                                maxLines: 1,
-                                softWrap: false,
-                                child: Center(
-                                  child: Text(entry.value),
-                                ),
+                          child: AnimatedDefaultTextStyle(
+                              duration: widget.animationDuration,
+                              style: _defaultTextStyle.merge(value == entry.key
+                                  ? widget.activeStyle.merge(TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer))
+                                  : widget.inactiveStyle ??
+                                      TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant)),
+                              overflow: TextOverflow.clip,
+                              maxLines: 1,
+                              softWrap: false,
+                              child: Center(
+                                child: Text(entry.value),
                               ),
-                            ),
                           ),
+                          // child: RawChip(
+                          //   padding: EdgeInsets.zero,
+                          //   side: const BorderSide(width: 0, color: Colors.transparent),
+                          //   shape:  RoundedRectangleBorder(borderRadius: borderRadius),
+                          //   backgroundColor: Colors.transparent,
+                          //   onPressed: () => _handleSegmentPressed(entry.key),
+                          //   label: Align(
+                          //     alignment: Alignment.center,
+                          //     child: AnimatedDefaultTextStyle(
+                          //       duration: widget.animationDuration,
+                          //       style: _defaultTextStyle.merge(value == entry.key
+                          //           ? widget.activeStyle.merge(TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer))
+                          //           : widget.inactiveStyle ?? TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          //       overflow: TextOverflow.clip,
+                          //       maxLines: 1,
+                          //       softWrap: false,
+                          //       child: Center(
+                          //         child: Text(entry.value),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                         ),
                       );
                     }).toList(growable: false),
